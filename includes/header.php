@@ -13,7 +13,8 @@ $navLinks = [
   ['tables',     'modules/tables/index.php',     'bi-bar-chart-steps','League Table'],
   ['players',    'modules/players/index.php',    'bi-people',         'Players'],
   ['news',       'modules/news/index.php',       'bi-newspaper',      'News'],
-  ['streaming',  'modules/streaming/index.php',  'bi-broadcast',      'Live Stream'],
+  ['streaming',  'modules/streaming/index.php',           'bi-broadcast',   'Live Stream'],
+  ['replays',    'modules/streaming/index.php?tab=replays', 'bi-play-circle', 'Replays'],
 ];
 
 // [page-key, href, icon, label, minRole]
@@ -61,7 +62,11 @@ $isAdminPage = in_array($currentPage, array_column($allAdminLinks, 0)) || $curre
 
     <!-- Desktop nav links -->
     <div class="nav-links" id="navLinks">
-      <?php foreach($navLinks as [$pg,$href,$ic,$lbl]): $a=$currentPage===$pg; ?>
+      <?php
+      $isReplaysTab = ($currentPage==='streaming' && ($_GET['tab']??'')==='replays');
+      foreach($navLinks as [$pg,$href,$ic,$lbl]):
+        $a = $pg==='replays' ? $isReplaysTab : ($currentPage===$pg && !($pg==='streaming' && $isReplaysTab));
+      ?>
       <a href="<?= APP_URL ?>/<?= $href ?>" class="nav-link <?= $a?'active':'' ?>">
         <?php if($pg==='streaming'&&$liveStreams>0): ?><span class="nav-pulse"></span><?php endif; ?>
         <?= $lbl ?>
@@ -132,7 +137,9 @@ $isAdminPage = in_array($currentPage, array_column($allAdminLinks, 0)) || $curre
   <!-- Mobile menu panel -->
   <div class="mobile-nav" id="mobileNav">
     <div class="mob-section">Navigation</div>
-    <?php foreach($navLinks as [$pg,$href,$ic,$lbl]): $a=$currentPage===$pg; ?>
+    <?php foreach($navLinks as [$pg,$href,$ic,$lbl]):
+      $a = $pg==='replays' ? $isReplaysTab : ($currentPage===$pg && !($pg==='streaming' && $isReplaysTab));
+    ?>
     <a href="<?= APP_URL ?>/<?= $href ?>" class="mob-link <?= $a?'active':'' ?>">
       <i class="bi <?= $ic ?>"></i><?= $lbl ?>
       <?php if($pg==='streaming'&&$liveStreams>0): ?><span class="mob-live">LIVE</span><?php endif; ?>
