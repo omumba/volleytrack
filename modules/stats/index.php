@@ -139,7 +139,7 @@ include __DIR__.'/../../includes/header.php';
       foreach ($rows as $r) {
         echo '<tr>';
         echo '<td><div style="width:26px;height:26px;border-radius:4px;background:'.$teamColor.';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">'.$r['jersey_number'].'</div></td>';
-        echo '<td style="font-weight:600;color:var(--t1);white-space:nowrap">'.htmlspecialchars($r['pname']).'</td>';
+        echo '<td style="font-weight:600;color:var(--t1);white-space:nowrap"><a href="'.APP_URL.'/modules/players/profile.php?id='.$r['id'].'" style="color:inherit;text-decoration:none" onmouseover="this.style.color=\'var(--acc)\'" onmouseout="this.style.color=\'\'">'.htmlspecialchars($r['pname']).'</a></td>';
         echo '<td>'.htmlspecialchars($r['position']).'</td>';
         echo '<td>'.$z($r['kills']).'</td>';
         echo '<td>'.$z($r['aces']).'</td>';
