@@ -123,7 +123,7 @@ include __DIR__.'/../../includes/header.php';
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px">
           <?php foreach($stats as [$sl,$sk,$sc]): $sv=(int)($p[$sk]??0); ?>
           <div style="background:var(--s2);border-radius:4px;padding:5px 2px;text-align:center">
             <div style="font-size:14px;font-weight:700;color:<?= $sc ?>;line-height:1"><?= $sv ?></div>
@@ -131,6 +131,7 @@ include __DIR__.'/../../includes/header.php';
           </div>
           <?php endforeach; ?>
         </div>
+        <a href="<?= APP_URL ?>/modules/players/profile.php?id=<?= $p['id'] ?>" style="display:block;text-align:center;font-size:11px;color:var(--t3);text-decoration:none;padding:5px;border-radius:var(--r);border:1px solid var(--b0);transition:all var(--tr)" onmouseover="this.style.background='var(--s2)';this.style.color='var(--t1)'" onmouseout="this.style.background='';this.style.color='var(--t3)'"><i class="bi bi-bar-chart-line me-1"></i>Career Stats</a>
       </div>
     </div>
     <?php endforeach; ?>
