@@ -4,16 +4,16 @@ requireRole('Referee'); $currentPage='manage_streams'; $pageTitle='Streams'; $db
 if($_SERVER['REQUEST_METHOD']==='POST'){
   $a=$_POST['action']??'';
   if(in_array($a,['add_cam','edit_cam'])){
-    $cid=(int)($_POST['cam_id']??0);$mid=(int)$_POST['match_id'];$lbl=trim($_POST['label']??'');$prov=$_POST['provider']??'RTMP_HLS';$hls=trim($_POST['hls_url']??'')?:null;$emb=trim($_POST['embed_url']??'')?:null;$prim=isset($_POST['is_primary'])?1:0;$key=trim($_POST['stream_key']??'')?:('vt-m'.$mid.'-'.substr(bin2hex(random_bytes(4)),0,8));
+    $cid=(int)($_POST['cam_id']??0);$mid=(int)$_POST['match_id'];$lbl=trim($_POST['label']??'');$prov=$_POST['provider']??'RTMP_HLS';$hls=trim($_POST['hls_url']??'')?:null;$emb=trim($_POST['embed_url']??'')?:null;$rec=trim($_POST['recording_url']??'')?:null;$prim=isset($_POST['is_primary'])?1:0;$key=trim($_POST['stream_key']??'')?:('vt-m'.$mid.'-'.substr(bin2hex(random_bytes(4)),0,8));
     if(!$mid||!$lbl){$err='Match and label required.';}
     else{
       if($prim)$db->prepare("UPDATE stream_cameras SET is_primary=0 WHERE match_id=?")->execute([$mid]);
       if($a==='add_cam'){
         if(!$hls&&$prov==='RTMP_HLS')$hls='http://YOUR_SERVER/hls/'.$key.'.m3u8';
-        $db->prepare("INSERT INTO stream_cameras(match_id,label,stream_key,hls_url,embed_url,provider,is_primary)VALUES(?,?,?,?,?,?,?)")->execute([$mid,$lbl,$key,$hls,$emb,$prov,$prim]);
+        $db->prepare("INSERT INTO stream_cameras(match_id,label,stream_key,hls_url,embed_url,recording_url,provider,is_primary)VALUES(?,?,?,?,?,?,?,?)")->execute([$mid,$lbl,$key,$hls,$emb,$rec,$prov,$prim]);
         $ok='Camera added. Key: '.$key;
       }else{
-        $db->prepare("UPDATE stream_cameras SET label=?,provider=?,hls_url=?,embed_url=?,stream_key=?,is_primary=? WHERE id=?")->execute([$lbl,$prov,$hls,$emb,$key,$prim,$cid]);
+        $db->prepare("UPDATE stream_cameras SET label=?,provider=?,hls_url=?,embed_url=?,recording_url=?,stream_key=?,is_primary=? WHERE id=?")->execute([$lbl,$prov,$hls,$emb,$rec,$key,$prim,$cid]);
         $ok='Camera updated.';
       }
     }
@@ -109,12 +109,13 @@ include __DIR__.'/../includes/header.php';
   <div class="field"><label class="label">Stream Key</label><input type="text" name="stream_key" id="cKey" class="input" placeholder="Auto-generated if blank"></div>
   <div class="field"><label class="label">HLS Playback URL</label><input type="url" name="hls_url" id="cHls" class="input" placeholder="http://YOUR_SERVER/hls/KEY.m3u8"></div>
   <div class="field"><label class="label">Embed URL (YouTube/Facebook)</label><input type="url" name="embed_url" id="cEmb" class="input" placeholder="https://www.youtube.com/embed/LIVE_ID"></div>
+  <div class="field"><label class="label">Recording URL <span style="font-weight:400;color:var(--t3)">(VOD — paste after match ends)</span></label><input type="url" name="recording_url" id="cRec" class="input" placeholder="https://www.youtube.com/embed/VIDEO_ID or .mp4 URL"></div>
   <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" name="is_primary" id="cPrim" value="1" style="accent-color:var(--pri)"><span style="font-size:13px">Primary camera (shown first)</span></label>
 </div>
 <div class="modal-footer"><button type="button" class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-pri btn-sm">Save</button></div>
 </form></div></div></div>
 <script>
-function loadEditCam(c){document.getElementById('cTitle').textContent='Edit Camera';document.getElementById('cAction').value='edit_cam';document.getElementById('cId').value=c.id;document.getElementById('cLabel').value=c.label;document.getElementById('cProv').value=c.provider;document.getElementById('cKey').value=c.stream_key;document.getElementById('cHls').value=c.hls_url||'';document.getElementById('cEmb').value=c.embed_url||'';document.getElementById('cPrim').checked=c.is_primary==1;}
+function loadEditCam(c){document.getElementById('cTitle').textContent='Edit Camera';document.getElementById('cAction').value='edit_cam';document.getElementById('cId').value=c.id;document.getElementById('cLabel').value=c.label;document.getElementById('cProv').value=c.provider;document.getElementById('cKey').value=c.stream_key;document.getElementById('cHls').value=c.hls_url||'';document.getElementById('cEmb').value=c.embed_url||'';document.getElementById('cRec').value=c.recording_url||'';document.getElementById('cPrim').checked=c.is_primary==1;}
 document.getElementById('camModal').addEventListener('hidden.bs.modal',()=>{document.getElementById('cTitle').textContent='Add Camera';document.getElementById('cAction').value='add_cam';document.getElementById('cId').value='';document.querySelector('#camModal form').reset();});
 </script>
 <?php include __DIR__.'/../includes/footer.php';?>
