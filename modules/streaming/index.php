@@ -6,7 +6,7 @@ $tab = $_GET['tab'] ?? 'live';  // 'live' | 'replays'
 $mid = (int)($_GET['match'] ?? 0);
 
 // Live / Scheduled matches with at least one camera
-$liveMatches = $db->query("SELECT m.id,m.status,m.round,m.match_date,ht.name hn,at.name an,ht.short_name hs,at.short_name as_,ht.color_primary hc,at.color_primary ac,m.home_sets_won,m.away_sets_won,m.home_score_current_set,m.away_score_current_set,(SELECT COUNT(*) FROM stream_cameras sc WHERE sc.match_id=m.id AND sc.status='Live') lc FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status IN('Live','Scheduled') ORDER BY FIELD(m.status,'Live','Scheduled'),m.match_date LIMIT 10")->fetchAll();
+$liveMatchList = $db->query("SELECT m.id,m.status,m.round,m.match_date,ht.name hn,at.name an,ht.short_name hs,at.short_name as_,ht.color_primary hc,at.color_primary ac,m.home_sets_won,m.away_sets_won,m.home_score_current_set,m.away_score_current_set,(SELECT COUNT(*) FROM stream_cameras sc WHERE sc.match_id=m.id AND sc.status='Live') lc FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status IN('Live','Scheduled') ORDER BY FIELD(m.status,'Live','Scheduled'),m.match_date LIMIT 10")->fetchAll();
 
 // Completed matches that have at least one recording
 $replayMatches = $db->query("SELECT m.id,m.status,m.round,m.match_date,ht.name hn,at.name an,ht.short_name hs,at.short_name as_,ht.color_primary hc,at.color_primary ac,m.home_sets_won,m.away_sets_won FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status='Completed' AND EXISTS(SELECT 1 FROM stream_cameras sc WHERE sc.match_id=m.id AND sc.recording_url IS NOT NULL AND sc.recording_url<>'') ORDER BY m.match_date DESC LIMIT 20")->fetchAll();
@@ -16,8 +16,8 @@ if (!$mid) {
   if ($tab === 'replays') {
     if (!empty($replayMatches)) $mid = $replayMatches[0]['id'];
   } else {
-    foreach ($liveMatches as $m) { if ($m['status']==='Live') { $mid=$m['id']; break; } }
-    if (!$mid && !empty($liveMatches)) $mid = $liveMatches[0]['id'];
+    foreach ($liveMatchList as $m) { if ($m['status']==='Live') { $mid=$m['id']; break; } }
+    if (!$mid && !empty($liveMatchList)) $mid = $liveMatchList[0]['id'];
   }
 }
 
@@ -158,9 +158,9 @@ include __DIR__.'/../../includes/header.php';
     <?php else: /* LIVE TAB */ ?>
 
     <!-- Live match selector -->
-    <?php if (count($liveMatches) > 1): ?>
+    <?php if (count($liveMatchList) > 1): ?>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <?php foreach ($liveMatches as $m): ?>
+      <?php foreach ($liveMatchList as $m): ?>
       <a href="?match=<?= $m['id'] ?>" class="btn <?= $m['id']==$mid?'btn-pri':'btn-ghost' ?> btn-sm">
         <?php if($m['status']==='Live'): ?><span style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block"></span><?php endif; ?>
         <?= htmlspecialchars($m['hs']) ?> vs <?= htmlspecialchars($m['as_']) ?>
