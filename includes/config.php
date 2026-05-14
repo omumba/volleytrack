@@ -20,9 +20,11 @@ function getDB(): PDO {
         [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES=>false]
       );
       // Schema migrations — silently ignored if column already exists
-      try { $pdo->exec("ALTER TABLE teams          ADD COLUMN logo          VARCHAR(255) NULL"); } catch(PDOException $e) {}
-      try { $pdo->exec("ALTER TABLE players       ADD COLUMN photo         VARCHAR(255) NULL"); } catch(PDOException $e) {}
+      try { $pdo->exec("ALTER TABLE teams           ADD COLUMN logo          VARCHAR(255) NULL"); } catch(PDOException $e) {}
+      try { $pdo->exec("ALTER TABLE players        ADD COLUMN photo         VARCHAR(255) NULL"); } catch(PDOException $e) {}
       try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN recording_url VARCHAR(500)  NULL"); } catch(PDOException $e) {}
+      try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN started_at    DATETIME      NULL"); } catch(PDOException $e) {}
+      try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN ended_at      DATETIME      NULL"); } catch(PDOException $e) {}
     } catch (PDOException $e) {
       die(json_encode(['error'=>'DB connection failed: '.$e->getMessage()]));
     }
