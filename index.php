@@ -6,7 +6,24 @@ $stats=['teams'=>$db->query("SELECT COUNT(*) FROM teams WHERE is_active=1")->fet
 $live=$db->query("SELECT m.*,ht.name hn,ht.short_name hs,ht.color_primary hc,at.name an,at.short_name as_,at.color_primary ac FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status='Live' LIMIT 3")->fetchAll();
 $results=$db->query("SELECT m.*,ht.name hn,ht.short_name hs,ht.color_primary hc,at.name an,at.short_name as_,at.color_primary ac FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status='Completed' ORDER BY m.match_date DESC LIMIT 6")->fetchAll();
 $upcoming=$db->query("SELECT m.*,ht.name hn,ht.short_name hs,at.name an,at.short_name as_ FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.status='Scheduled' ORDER BY m.match_date ASC LIMIT 5")->fetchAll();
-$standings=$db->query("SELECT ls.*,t.name,t.short_name,t.color_primary FROM league_standings ls JOIN teams t ON t.id=ls.team_id WHERE ls.season_id=1 ORDER BY ls.points DESC,ls.set_ratio DESC LIMIT 6")->fetchAll();
+// One active (or most recent) season per category, with its top-6 standings
+$leagueCategories=['League A Men','League A Women','League B Men','League B Women'];
+$catStandings=[];
+foreach($leagueCategories as $lcat){
+  $csid=$db->prepare("SELECT id,name FROM seasons WHERE category=? ORDER BY FIELD(status,'Active','Upcoming','Completed'),start_date DESC LIMIT 1");
+  $csid->execute([$lcat]); $csRow=$csid->fetch();
+  if(!$csRow) continue;
+  $cst=$db->prepare("SELECT ls.*,t.name,t.short_name,t.color_primary FROM league_standings ls JOIN teams t ON t.id=ls.team_id WHERE ls.season_id=? ORDER BY ls.points DESC,ls.set_ratio DESC LIMIT 6");
+  $cst->execute([$csRow['id']]); $rows=$cst->fetchAll();
+  if(!empty($rows)) $catStandings[]=[$lcat,$csRow,$rows];
+}
+// Fallback: if no categorised seasons exist yet, show the old single-season table
+if(empty($catStandings)){
+  $fallbackSid=$db->query("SELECT id FROM seasons ORDER BY start_date DESC LIMIT 1")->fetchColumn();
+  $rows=$db->prepare("SELECT ls.*,t.name,t.short_name,t.color_primary FROM league_standings ls JOIN teams t ON t.id=ls.team_id WHERE ls.season_id=? ORDER BY ls.points DESC,ls.set_ratio DESC LIMIT 6");
+  $rows->execute([$fallbackSid??1]); $rows=$rows->fetchAll();
+  if(!empty($rows)) $catStandings[]=[null,['id'=>$fallbackSid,'name'=>'League Table'],$rows];
+}
 $news=$db->query("SELECT id,title,slug,category,published_at FROM news_articles WHERE status='Published' ORDER BY published_at DESC LIMIT 4")->fetchAll();
 $catC=['Match Report'=>'var(--acc)','Analysis'=>'var(--pri)','General'=>'var(--grn)','Tournament'=>'var(--gld)','Interview'=>'var(--pur)','Transfer'=>'var(--acc)'];
 include __DIR__.'/includes/header.php';
@@ -116,8 +133,12 @@ include __DIR__.'/includes/header.php';
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
+      <?php foreach($catStandings as [$lcat,$csRow,$standings]): ?>
       <div class="card">
-        <div class="card-head"><h3>League Table</h3><a href="<?=APP_URL?>/modules/tables/index.php" class="btn btn-ghost btn-sm">Full</a></div>
+        <div class="card-head">
+          <h3><?=$lcat??'League Table'?></h3>
+          <a href="<?=APP_URL?>/modules/tables/index.php?<?=$lcat?'cat='.urlencode($lcat).'&':''?>season=<?=$csRow['id']?>" class="btn btn-ghost btn-sm">Full</a>
+        </div>
         <div class="tbl-wrap">
           <table class="tbl">
             <thead><tr><th>#</th><th>Team</th><th>MP</th><th>W</th><th>Pts</th></tr></thead>
@@ -135,6 +156,7 @@ include __DIR__.'/includes/header.php';
           </table>
         </div>
       </div>
+      <?php endforeach; // catStandings ?>
 
       <?php if(isLoggedIn()):?>
       <div class="card">

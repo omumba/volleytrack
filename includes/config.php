@@ -25,6 +25,7 @@ function getDB(): PDO {
       try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN recording_url VARCHAR(500)  NULL"); } catch(PDOException $e) {}
       try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN started_at    DATETIME      NULL"); } catch(PDOException $e) {}
       try { $pdo->exec("ALTER TABLE stream_cameras ADD COLUMN ended_at      DATETIME      NULL"); } catch(PDOException $e) {}
+      try { $pdo->exec("ALTER TABLE seasons        ADD COLUMN category      VARCHAR(50)   NULL"); } catch(PDOException $e) {}
     } catch (PDOException $e) {
       die(json_encode(['error'=>'DB connection failed: '.$e->getMessage()]));
     }

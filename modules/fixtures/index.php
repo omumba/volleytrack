@@ -2,11 +2,19 @@
 require_once __DIR__.'/../../includes/config.php';
 $currentPage='fixtures'; $pageTitle='Fixtures'; $db=getDB();
 $sf=$_GET['status']??''; $rf=$_GET['round']??''; $sq=trim($_GET['q']??'');
-// Use the active season, fall back to the most recent one
-$activeSeason=$db->query("SELECT id FROM seasons WHERE status='Active' ORDER BY start_date DESC LIMIT 1")->fetchColumn();
-if(!$activeSeason) $activeSeason=$db->query("SELECT id FROM seasons ORDER BY start_date DESC LIMIT 1")->fetchColumn();
-$sid=(int)($_GET['season']??$activeSeason??1);
-$allSeasons=$db->query("SELECT id,name,status FROM seasons ORDER BY start_date DESC")->fetchAll();
+
+const CATEGORIES = ['League A Men','League A Women','League B Men','League B Women'];
+$cat = $_GET['cat'] ?? '';
+if (!in_array($cat, CATEGORIES)) $cat = '';
+
+$allSeasons=$db->query("SELECT id,name,status,category FROM seasons ORDER BY start_date DESC")->fetchAll();
+$catSeasons = $cat ? array_values(array_filter($allSeasons, fn($s) => $s['category']===$cat)) : $allSeasons;
+
+// Use the active season in selected category, fall back to most recent
+$defaultSid = 0;
+foreach ($catSeasons as $se) { if ($se['status']==='Active') { $defaultSid=$se['id']; break; } }
+if (!$defaultSid && !empty($catSeasons)) $defaultSid = $catSeasons[0]['id'];
+$sid=(int)($_GET['season']??$defaultSid??1);
 $rounds=$db->prepare("SELECT DISTINCT round FROM matches WHERE season_id=? AND round IS NOT NULL ORDER BY round");
 $rounds->execute([$sid]); $rounds=$rounds->fetchAll(PDO::FETCH_COLUMN);
 $w="m.season_id=?"; $p=[$sid];
@@ -23,11 +31,20 @@ include __DIR__.'/../../includes/header.php';
     <h1 style="font-size:18px;font-weight:600">Fixtures</h1>
     <?php if(isLoggedIn()): ?><a href="<?= APP_URL ?>/admin/manage_match.php" class="btn btn-pri btn-sm"><i class="bi bi-plus"></i>Add Fixture</a><?php endif; ?>
   </div>
+  <!-- Category tabs -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+    <a href="?" class="btn <?= !$cat?'btn-pri':'btn-ghost' ?> btn-sm">All</a>
+    <?php foreach(CATEGORIES as $c): ?>
+    <a href="?cat=<?= urlencode($c) ?>" class="btn <?= $cat===$c?'btn-pri':'btn-ghost' ?> btn-sm"><?= $c ?></a>
+    <?php endforeach; ?>
+  </div>
+
   <div style="background:var(--s1);border:1px solid var(--b0);border-radius:var(--r);padding:12px 14px;margin-bottom:16px">
     <form method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <?php if($cat): ?><input type="hidden" name="cat" value="<?= htmlspecialchars($cat) ?>"><?php endif; ?>
       <div class="field" style="flex:1;min-width:160px"><label class="label">Search</label><div class="search-box"><i class="bi bi-search"></i><input type="text" name="q" value="<?= htmlspecialchars($sq) ?>" placeholder="Team name..."></div></div>
       <div class="field"><label class="label">Status</label><select name="status" class="select" style="width:130px"><option value="">All</option><?php foreach(['Live','Scheduled','Completed','Postponed'] as $st): ?><option value="<?= $st ?>" <?= $sf===$st?'selected':'' ?>><?= $st ?></option><?php endforeach; ?></select></div>
-      <div class="field"><label class="label">Season</label><select name="season" class="select" style="width:130px"><?php foreach($allSeasons as $se): ?><option value="<?= $se['id'] ?>" <?= $se['id']==$sid?'selected':'' ?>><?= htmlspecialchars($se['name']) ?></option><?php endforeach; ?></select></div>
+      <div class="field"><label class="label">Season</label><select name="season" class="select" style="width:130px"><?php foreach($catSeasons as $se): ?><option value="<?= $se['id'] ?>" <?= $se['id']==$sid?'selected':'' ?>><?= htmlspecialchars($se['name']) ?></option><?php endforeach; ?></select></div>
       <div class="field"><label class="label">Round</label><select name="round" class="select" style="width:130px"><option value="">All rounds</option><?php foreach($rounds as $r): ?><option value="<?= htmlspecialchars($r) ?>" <?= $rf===$r?'selected':'' ?>><?= htmlspecialchars($r) ?></option><?php endforeach; ?></select></div>
       <div style="display:flex;gap:6px"><button type="submit" class="btn btn-def btn-sm"><i class="bi bi-funnel"></i>Filter</button><a href="?" class="btn btn-ghost btn-sm"><i class="bi bi-x"></i>Clear</a></div>
       <span style="font-size:12px;color:var(--t3);align-self:flex-end"><?= count($matches) ?> match<?= count($matches)!==1?'es':'' ?></span>

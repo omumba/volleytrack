@@ -1,8 +1,24 @@
 <?php
 require_once __DIR__.'/../../includes/config.php';
 $currentPage='tables'; $pageTitle='League Table'; $db=getDB();
-$seasons=$db->query("SELECT * FROM seasons ORDER BY start_date DESC")->fetchAll();
-$sid=(int)($_GET['season']??1);
+
+const CATEGORIES = ['League A Men','League A Women','League B Men','League B Women'];
+$cat = $_GET['cat'] ?? '';
+if (!in_array($cat, CATEGORIES)) $cat = '';
+
+$seasons = $db->query("SELECT * FROM seasons ORDER BY start_date DESC")->fetchAll();
+
+// Filter seasons to selected category (or all if no category chosen)
+$catSeasons = $cat
+  ? array_values(array_filter($seasons, fn($s) => $s['category'] === $cat))
+  : $seasons;
+
+// Default season: active in the category, else most recent
+$defaultSid = 0;
+foreach ($catSeasons as $se) { if ($se['status']==='Active') { $defaultSid=$se['id']; break; } }
+if (!$defaultSid && !empty($catSeasons)) $defaultSid = $catSeasons[0]['id'];
+
+$sid = (int)($_GET['season'] ?? $defaultSid ?? 1);
 $s=$db->prepare("SELECT ls.*,t.name,t.short_name,t.color_primary,t.logo FROM league_standings ls JOIN teams t ON t.id=ls.team_id WHERE ls.season_id=? ORDER BY ls.points DESC,ls.set_ratio DESC");
 $s->execute([$sid]); $standings=$s->fetchAll();
 $form=[];
@@ -21,13 +37,23 @@ include __DIR__.'/../../includes/header.php';
       <?php if(hasRole('Admin')): ?><a href="<?= APP_URL ?>/admin/recalculate_standings.php" class="btn btn-ghost btn-sm"><i class="bi bi-arrow-clockwise"></i>Recalculate</a><?php endif; ?>
     </div>
   </div>
+  <!-- Category tabs -->
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    <a href="?<?= $sid?'season='.$sid:'' ?>" class="btn <?= !$cat?'btn-pri':'btn-ghost' ?> btn-sm">All</a>
+    <?php foreach(CATEGORIES as $c): ?>
+    <a href="?cat=<?= urlencode($c) ?>" class="btn <?= $cat===$c?'btn-pri':'btn-ghost' ?> btn-sm"><?= $c ?></a>
+    <?php endforeach; ?>
+  </div>
+
+  <!-- Season selector (filtered by category) -->
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
-    <?php foreach($seasons as $se): ?>
-    <a href="?season=<?= $se['id'] ?>" class="btn <?= $se['id']==$sid?'btn-pri':'btn-ghost' ?> btn-sm">
+    <?php foreach($catSeasons as $se): ?>
+    <a href="?<?= $cat?'cat='.urlencode($cat).'&':'' ?>season=<?= $se['id'] ?>" class="btn <?= $se['id']==$sid?'btn-pri':'btn-ghost' ?> btn-sm">
       <?= htmlspecialchars($se['name']) ?>
       <span class="badge <?= $se['status']==='Active'?'b-active':'b-off' ?>" style="font-size:10px"><?= $se['status'] ?></span>
     </a>
     <?php endforeach; ?>
+    <?php if(empty($catSeasons)): ?><span style="font-size:12px;color:var(--t3);align-self:center">No seasons in this category yet</span><?php endif; ?>
   </div>
   <div style="display:grid;grid-template-columns:1fr 260px;gap:16px">
     <div class="card">
