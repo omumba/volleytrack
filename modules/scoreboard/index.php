@@ -8,7 +8,7 @@ $sel=null;$acts=[];
 if($mid){
   $s=$db->prepare("SELECT m.*,ht.name hn,ht.short_name hs,ht.color_primary hc,at.name an,at.short_name as_,at.color_primary ac FROM matches m JOIN teams ht ON ht.id=m.home_team_id JOIN teams at ON at.id=m.away_team_id WHERE m.id=?");
   $s->execute([$mid]);$sel=$s->fetch();
-  $as=$db->prepare("SELECT pa.*,CONCAT(p.first_name,' ',p.last_name) pn,p.jersey_number jn,t.name tn,t.color_primary tc FROM player_actions pa JOIN players p ON p.id=pa.player_id JOIN teams t ON t.id=pa.team_id WHERE pa.match_id=? ORDER BY pa.recorded_at DESC LIMIT 30");
+  $as=$db->prepare("SELECT pa.*,p.id pid,CONCAT(p.first_name,' ',p.last_name) pn,p.jersey_number jn,t.name tn,t.color_primary tc FROM player_actions pa JOIN players p ON p.id=pa.player_id JOIN teams t ON t.id=pa.team_id WHERE pa.match_id=? ORDER BY pa.recorded_at DESC LIMIT 30");
   $as->execute([$mid]);$acts=$as->fetchAll();
 }
 $aIcons=['Ace'=>'bi-star-fill','Attack Kill'=>'bi-lightning-fill','Block'=>'bi-shield-fill','Dig'=>'bi-arrow-down-circle-fill','Set Assist'=>'bi-arrow-up-right-circle-fill','Service Error'=>'bi-x-circle-fill','Attack Error'=>'bi-x-circle-fill','Reception'=>'bi-hand-thumbs-up-fill'];
@@ -103,7 +103,7 @@ include __DIR__.'/../../includes/header.php';
       <?php else: foreach($acts as $a): $rc=$a['action_result']==='Success'?'fd-ok':($a['action_result']==='Error'?'fd-err':'fd-neu');$ic=$aIcons[$a['action_type']]??'bi-dot'; ?>
       <div class="feed-item">
         <div class="fdot <?= $rc ?>"><i class="bi <?= $ic ?>"></i></div>
-        <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:<?= $a['tc'] ?>">#<?= $a['jn'] ?></span> <?= htmlspecialchars($a['pn']) ?></div><div style="font-size:11px;color:var(--t3)"><?= $a['action_type'] ?> · S<?= $a['set_number'] ?> · <?= date('H:i:s',strtotime($a['recorded_at'])) ?></div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:<?= $a['tc'] ?>">#<?= $a['jn'] ?></span> <a href="<?= APP_URL ?>/modules/players/profile.php?id=<?= $a['pid'] ?>" style="color:inherit;text-decoration:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color=''"><?= htmlspecialchars($a['pn']) ?></a></div><div style="font-size:11px;color:var(--t3)"><?= $a['action_type'] ?> · S<?= $a['set_number'] ?> · <?= date('H:i:s',strtotime($a['recorded_at'])) ?></div></div>
         <span style="font-size:11px;font-weight:600;color:var(--t2);flex-shrink:0"><?= $a['home_score_after'] ?>–<?= $a['away_score_after'] ?></span>
       </div>
       <?php endforeach; endif; ?>
