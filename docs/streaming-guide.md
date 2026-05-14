@@ -149,12 +149,41 @@ When the match finishes:
 
 1. In **Admin → Score Entry**, click **End Match** — status becomes `Completed`
 2. In **Admin → Live Streams**, set each camera to **Ended**
-3. The stream page shows "Stream has ended" to viewers
+3. The stream page shows "Stream has ended" to viewers, with a **Watch Replay** button if a recording is available
 4. The scoreboard shows the final score permanently
 
 ---
 
+### Step 8 — Add a Recording (optional)
+
+After the match ends you can attach a VOD (video on demand) link so fans can rewatch the game at any time.
+
+1. Go to **Admin → Live Streams**, select the completed match
+2. Click the **Edit** (pencil) button on any camera
+3. Paste the recording URL into the **Recording URL** field
+4. Click **Save**
+
+The match will now appear on the public **Replays** tab of the stream page.
+
+**Supported recording URL formats:**
+
+| Format | Example |
+|---|---|
+| YouTube VOD embed | `https://www.youtube.com/embed/VIDEO_ID` |
+| Facebook video embed | `https://www.facebook.com/plugins/video.php?href=...` |
+| Direct MP4 file | `https://yourserver.com/recordings/match7.mp4` |
+| HLS recording | `https://yourserver.com/recordings/match7.m3u8` |
+| Custom embed (Vimeo, etc.) | Any iframe `src` URL |
+
+You can add a different recording URL to each camera — for example, one angle on YouTube and a full match file as an MP4.
+
+---
+
 ## What Viewers See
+
+The stream page has two tabs at the top: **Live & Upcoming** and **Replays**.
+
+### Live & Upcoming tab
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -179,6 +208,29 @@ When the match finishes:
 - Score overlay updates **every 5 seconds** from the database
 - Chat updates **every 3 seconds** (new messages appear without refresh)
 - Viewers do not need an account to watch or chat (guest name supported)
+
+### Replays tab
+
+```
+┌─────────────────────────────────────────────────────┐
+│ [BLS 2 – 1 LLT]                        ▶ REPLAY    │  ← final score overlay
+│                                                      │
+│                                                      │
+│              RECORDED VIDEO                          │
+│                                                      │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+│ Main Court  │ Attack Camera  │                       │  ← camera tabs (per recording)
+└─────────────────────────────────────────────────────┘
+│                   MATCH CHAT                         │
+│  (original live chat messages from the match)        │
+└─────────────────────────────────────────────────────┘
+```
+
+- Only completed matches with at least one recording URL appear here
+- The final set score is shown in the overlay instead of a live score
+- The original live chat from the match is displayed (read-only — no new polling)
+- Each camera angle can have its own recording URL; viewers switch between them with tabs
 
 ---
 
@@ -208,6 +260,8 @@ You can open this in a browser source inside OBS and overlay it on top of your v
 | HLS stream not playing | Wrong HLS URL or media server not running | Verify the `.m3u8` URL loads in a browser |
 | YouTube embed blocked | Autoplay policy | Viewer needs to click play once; muted autoplay may work |
 | Camera tabs not showing | Only one camera configured | Add more cameras in Admin → Streams |
+| Match not appearing in Replays | No recording URL set | Edit the camera in Admin → Streams and add a Recording URL |
+| Replay video not playing | Wrong URL format | Check the URL opens directly in a browser; for YouTube use the `/embed/` form |
 
 ---
 
@@ -222,3 +276,4 @@ You can open this in a browser source inside OBS and overlay it on top of your v
 - [ ] All streaming cameras set to **Live** in Admin → Streams
 - [ ] Stream link shared with viewers
 - [ ] After match: cameras set to **Ended**, match ended in Score Entry
+- [ ] (Optional) Recording URL added to each camera for replay access
