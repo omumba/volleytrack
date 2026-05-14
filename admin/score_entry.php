@@ -70,7 +70,8 @@ include __DIR__.'/../includes/header.php';
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <?php if($match['status']==='Scheduled'):?><button class="btn btn-success btn-sm" onclick="doStart()"><i class="bi bi-play-fill"></i>Start</button>
         <?php elseif($match['status']==='Live'):?><button class="btn btn-def btn-sm" onclick="doEditScores()"><i class="bi bi-pencil"></i>Edit</button><button class="btn btn-def btn-sm" onclick="doEndSet()"><i class="bi bi-skip-end-fill"></i>End Set</button><button class="btn btn-danger btn-sm" onclick="doEnd()"><i class="bi bi-stop-fill"></i>End</button><?php endif;?>
-        <a href="<?=APP_URL?>/modules/scoreboard/index.php?match=<?=$matchId?>" target="_blank" class="btn btn-ghost btn-sm btn-icon"><i class="bi bi-display" style="font-size:12px"></i></a>
+        <a href="<?=APP_URL?>/modules/scoreboard/index.php?match=<?=$matchId?>" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Scoreboard"><i class="bi bi-display" style="font-size:12px"></i></a>
+        <a href="<?=APP_URL?>/modules/stats/index.php?match=<?=$matchId?>" target="_blank" class="btn btn-ghost btn-sm btn-icon" title="Player Stats"><i class="bi bi-bar-chart-line" style="font-size:12px"></i></a>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px">

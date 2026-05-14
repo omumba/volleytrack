@@ -54,6 +54,7 @@ include __DIR__.'/../../includes/header.php';
           <span style="font-size:12px;color:var(--t3)"><i class="bi bi-calendar3 me-1"></i><?= date('D d M Y H:i',strtotime($sel['match_date'])) ?></span>
           <?php if($sel['venue']): ?><span style="font-size:12px;color:var(--t3)"><i class="bi bi-geo-alt me-1"></i><?= htmlspecialchars($sel['venue']) ?></span><?php endif; ?>
         </div>
+        <a href="<?= APP_URL ?>/modules/stats/index.php?match=<?= $mid ?>" class="btn btn-ghost btn-sm"><i class="bi bi-bar-chart-line"></i>Stats</a>
         <?php if(isLoggedIn()): ?><a href="<?= APP_URL ?>/admin/score_entry.php?match=<?= $mid ?>" class="btn btn-pri btn-sm"><i class="bi bi-pencil-square"></i>Score Entry</a><?php endif; ?>
       </div>
 

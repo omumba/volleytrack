@@ -9,6 +9,7 @@ $cu = currentUser();
 $navLinks = [
   ['home',       '',                             'bi-house',          'Dashboard'],
   ['scoreboard', 'modules/scoreboard/index.php', 'bi-display',        'Scoreboard'],
+  ['stats',      'modules/stats/index.php',      'bi-bar-chart-line', 'Stats'],
   ['fixtures',   'modules/fixtures/index.php',   'bi-calendar3',      'Fixtures'],
   ['tables',     'modules/tables/index.php',     'bi-bar-chart-steps','League Table'],
   ['players',    'modules/players/index.php',    'bi-people',         'Players'],
